@@ -1,40 +1,65 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useUser } from '@auth0/nextjs-auth0/client'
 
 export default function ProtectedPage() {
-  const { user, isLoading, error } = useUser()
+  const { user, isLoading: isUserLoading, error: userError } = useUser()
   const [title, setTitle] = useState('')
   const [chapter, setChapter] = useState('')
   const [summary, setSummary] = useState('')
   const [isSearching, setIsSearching] = useState(false)
+  const [error, setError] = useState('')
 
-  useEffect(() => {
-    console.log('Component mounted')
-    console.log('User:', user)
-    console.log('Is loading:', isLoading)
-    console.log('Error:', error)
-  }, [user, isLoading, error])
-
-  const handleSubmit = async (e: React.FormEvent, isSpecific: boolean) => {
-    e.preventDefault()
+  const fetchSummary = async (isSpecific: boolean) => {
     setIsSearching(true)
+    setError('')
     setSummary('')
 
-    // Simulamos una búsqueda
-    setTimeout(() => {
-      if (isSpecific && chapter) {
-        setSummary(`Este es un resumen específico para "${title}", capítulo/película ${chapter}. Aquí implementaremos la llamada a la API de Perplexity más adelante.`)
+    const content = isSpecific && chapter
+      ? `Proporciona un resumen conciso del capítulo/película ${chapter} de "${title}".`
+      : `Proporciona un resumen general conciso de la película o serie "${title}".`
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_PERPLEXITY_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-sonar-small-128k-online",
+        messages: [
+          { role: "system", content: "Eres un asistente que proporciona resúmenes concisos de películas y series." },
+          { role: "user", content: content }
+        ],
+        max_tokens: 150,
+        temperature: 0.7,
+        top_p: 0.9
+      })
+    };
+
+    try {
+      const response = await fetch('https://api.perplexity.ai/chat/completions', options)
+      const data = await response.json()
+      if (response.ok) {
+        setSummary(data.choices[0].message.content)
       } else {
-        setSummary(`Este es un resumen general para "${title}". Aquí implementaremos la llamada a la API de Perplexity más adelante.`)
+        setError('Error al obtener el resumen. Por favor, intenta de nuevo.')
       }
+    } catch (err) {
+      setError('Error de red. Por favor, verifica tu conexión e intenta de nuevo.')
+    } finally {
       setIsSearching(false)
-    }, 1000)
+    }
   }
 
-  if (isLoading) return <div>Cargando...</div>
-  if (error) return <div>Error: {error.message}</div>
+  const handleSubmit = (e: React.FormEvent, isSpecific: boolean) => {
+    e.preventDefault()
+    fetchSummary(isSpecific)
+  }
+
+  if (isUserLoading) return <div className="text-center p-4">Cargando...</div>
+  if (userError) return <div className="text-center p-4 text-red-500">Error: {userError.message}</div>
 
   return (
     <div className="max-w-2xl mx-auto p-4">
@@ -78,6 +103,11 @@ export default function ProtectedPage() {
               {isSearching ? 'Buscando...' : 'Obtener Resumen General'}
             </button>
           </form>
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+              <span className="block sm:inline">{error}</span>
+            </div>
+          )}
           {summary && (
             <div className="bg-gray-100 p-4 rounded">
               <h2 className="font-bold mb-2">Resumen:</h2>
