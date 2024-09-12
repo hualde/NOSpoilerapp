@@ -27,12 +27,12 @@ export default function ProtectedPage() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: "llama-3.1-sonar-small-128k-online",
+        model: "llama-3.1-sonar-large-128k-online",
         messages: [
           { role: "system", content: "Eres un asistente que proporciona resúmenes concisos de películas y series." },
           { role: "user", content: content }
         ],
-        max_tokens: 150,
+        max_tokens: 500,
         temperature: 0.7,
         top_p: 0.9
       })
