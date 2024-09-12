@@ -6,6 +6,7 @@ import { useUser } from '@auth0/nextjs-auth0/client'
 export default function ProtectedPage() {
   const { user, isLoading, error } = useUser()
   const [title, setTitle] = useState('')
+  const [chapter, setChapter] = useState('')
   const [summary, setSummary] = useState('')
   const [isSearching, setIsSearching] = useState(false)
 
@@ -16,14 +17,18 @@ export default function ProtectedPage() {
     console.log('Error:', error)
   }, [user, isLoading, error])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, isSpecific: boolean) => {
     e.preventDefault()
     setIsSearching(true)
     setSummary('')
 
     // Simulamos una búsqueda
     setTimeout(() => {
-      setSummary(`Este es un resumen de prueba para "${title}". Aquí implementaremos la llamada a la API de Perplexity más adelante.`)
+      if (isSpecific && chapter) {
+        setSummary(`Este es un resumen específico para "${title}", capítulo/película ${chapter}. Aquí implementaremos la llamada a la API de Perplexity más adelante.`)
+      } else {
+        setSummary(`Este es un resumen general para "${title}". Aquí implementaremos la llamada a la API de Perplexity más adelante.`)
+      }
       setIsSearching(false)
     }, 1000)
   }
@@ -37,21 +42,40 @@ export default function ProtectedPage() {
       {user ? (
         <>
           <p className="mb-4">Bienvenido, {user.name}!</p>
-          <form onSubmit={handleSubmit} className="mb-4">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ingresa el título de una película o serie"
-              className="w-full p-2 border border-gray-300 rounded"
-              required
-            />
+          <form onSubmit={(e) => handleSubmit(e, false)} className="mb-4">
+            <div className="mb-2">
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ingresa el título de una película o serie"
+                className="w-full p-2 border border-gray-300 rounded"
+                required
+              />
+            </div>
+            <div className="mb-2 flex">
+              <input
+                type="text"
+                value={chapter}
+                onChange={(e) => setChapter(e.target.value)}
+                placeholder="Número de capítulo/película (opcional)"
+                className="flex-grow p-2 border border-gray-300 rounded-l"
+              />
+              <button
+                type="button"
+                onClick={(e) => handleSubmit(e, true)}
+                className="bg-green-500 text-white p-2 rounded-r hover:bg-green-600 disabled:bg-green-300"
+                disabled={isSearching || !chapter}
+              >
+                Resumen Específico
+              </button>
+            </div>
             <button
               type="submit"
-              className="mt-2 w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
+              className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
               disabled={isSearching}
             >
-              {isSearching ? 'Buscando...' : 'Obtener Resumen'}
+              {isSearching ? 'Buscando...' : 'Obtener Resumen General'}
             </button>
           </form>
           {summary && (
