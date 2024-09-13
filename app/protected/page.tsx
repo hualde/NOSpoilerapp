@@ -3,6 +3,14 @@
 import { useState } from 'react'
 import { useUser } from '@auth0/nextjs-auth0/client'
 
+// Función auxiliar para convertir markdown básico a HTML
+function simpleMarkdownToHtml(markdown: string): string {
+  return markdown
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>')
+}
+
 export default function ProtectedPage() {
   const { user, isLoading: isUserLoading, error: userError } = useUser()
   const [title, setTitle] = useState('')
@@ -27,7 +35,7 @@ export default function ProtectedPage() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: "llama-3.1-sonar-large-128k-online",
+        model: "llama-3.1-sonar-small-128k-online",
         messages: [
           { role: "system", content: "Eres un asistente que proporciona resúmenes concisos de películas y series." },
           { role: "user", content: content }
@@ -124,7 +132,10 @@ export default function ProtectedPage() {
           {summary && (
             <div className="mt-6 p-4 bg-gray-100 rounded-md overflow-auto max-h-96">
               <h2 className="font-bold text-lg mb-2 text-gray-800">Resumen:</h2>
-              <p className="text-gray-700 whitespace-pre-wrap">{summary}</p>
+              <div 
+                className="text-gray-700"
+                dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(summary) }}
+              />
             </div>
           )}
         </div>
