@@ -25,8 +25,8 @@ export default function ProtectedPage() {
     setSummary('')
 
     const content = isSpecific && chapter
-      ? `Proporciona un resumen conciso del capítulo/película ${chapter} de "${title}". Sin spoilers de capitulos siguientes`
-      : `Proporciona un resumen general conciso de la película o serie "${title}" hasta el capitulo ${chapter}. Sin spoilers de capitulos siguientes`
+      ? `Proporciona un resumen de qué ha pasado en el capítulo/película ${chapter} de "${title}". Sin spoilers de capitulos futuros al indicado`
+      : `Proporciona un resumen de qué ha pasado en la película o serie "${title}" hasta el capitulo ${chapter}. Sin spoilers de capitulos fututros al indicado`
 
     const options = {
       method: 'POST',
@@ -37,7 +37,7 @@ export default function ProtectedPage() {
       body: JSON.stringify({
         model: "llama-3.1-sonar-small-128k-online",
         messages: [
-          { role: "system", content: "Eres un asistente que proporciona resúmenes concisos de películas y series." },
+          { role: "system", content: "Eres un asistente que proporciona resúmenes concisos de películas y series. Limitate a dar la info de lo que sucede en la serie, no quiero saber nada que no sea lo que ha sucedido." },
           { role: "user", content: content }
         ],
         max_tokens: 150,
