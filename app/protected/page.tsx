@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useUser } from '@auth0/nextjs-auth0/client'
 
-// Función auxiliar para convertir markdown básico a HTML
 function simpleMarkdownToHtml(markdown: string): string {
   return markdown
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -18,15 +17,16 @@ export default function ProtectedPage() {
   const [summary, setSummary] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [error, setError] = useState('')
+  const [summaryType, setSummaryType] = useState<'specific' | 'general'>('general')
 
-  const fetchSummary = async (isSpecific: boolean) => {
+  const fetchSummary = async () => {
     setIsSearching(true)
     setError('')
     setSummary('')
 
-    const content = isSpecific && chapter
-  ? `Proporciona un resumen objetivo y conciso de lo que sucede en el capítulo/película ${chapter} de "${title}". Limítate a describir solo los eventos principales de la trama, sin añadir información adicional.`
-  : `Proporciona un resumen objetivo y conciso de los eventos principales en la serie/pelicula "${title}" desde el inicio hasta el capítulo ${chapter}. Enfócate en la historia.`
+    const content = summaryType === 'specific' && chapter
+      ? `Proporciona un resumen objetivo y conciso de lo que sucede en el capítulo/película ${chapter} de "${title}". Limítate a describir solo los eventos principales de la trama, sin añadir información adicional.`
+      : `Proporciona un resumen objetivo y conciso de los eventos principales en la serie/película "${title}"${chapter ? ` hasta el capítulo ${chapter}` : ''}. Enfócate en la historia principal.`
     
     const options = {
       method: 'POST',
@@ -37,7 +37,7 @@ export default function ProtectedPage() {
       body: JSON.stringify({
         model: "llama-3.1-sonar-small-128k-online",
         messages: [
-          { role: "system", content: "eres un experto en cine" },
+          { role: "system", content: "Eres un experto en cine que proporciona resúmenes objetivos y concisos." },
           { role: "user", content: content }
         ],
         max_tokens: 400,
@@ -66,9 +66,9 @@ export default function ProtectedPage() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent, isSpecific: boolean) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    fetchSummary(isSpecific)
+    fetchSummary()
   }
 
   if (isUserLoading) return <div className="text-center p-4">Cargando...</div>
@@ -80,7 +80,7 @@ export default function ProtectedPage() {
       {user ? (
         <div className="bg-white shadow-md rounded-lg p-6">
           <p className="mb-4 text-lg font-semibold text-gray-700">Bienvenido, {user.name}!</p>
-          <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <input
                 type="text"
@@ -99,14 +99,14 @@ export default function ProtectedPage() {
                 placeholder="Número de capítulo/película (opcional)"
                 className="w-full sm:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <button
-                type="button"
-                onClick={(e) => handleSubmit(e, true)}
-                className="w-full sm:w-1/3 px-4 py-3 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 disabled:opacity-50 transition duration-150 ease-in-out"
-                disabled={isSearching || !chapter}
+              <select
+                value={summaryType}
+                onChange={(e) => setSummaryType(e.target.value as 'specific' | 'general')}
+                className="w-full sm:w-1/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                Resumen Específico
-              </button>
+                <option value="general">Resumen General</option>
+                <option value="specific">Resumen Específico</option>
+              </select>
             </div>
             <button
               type="submit"
@@ -121,7 +121,7 @@ export default function ProtectedPage() {
                   </svg>
                   Buscando...
                 </span>
-              ) : 'Obtener Resumen General'}
+              ) : 'Obtener Resumen'}
             </button>
           </form>
           {error && (
