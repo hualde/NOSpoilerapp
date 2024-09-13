@@ -2,10 +2,6 @@
 
 import { useState } from 'react'
 import { useUser } from '@auth0/nextjs-auth0/client'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Loader2 } from "lucide-react"
 
 export default function ProtectedPage() {
   const { user, isLoading: isUserLoading, error: userError } = useUser()
@@ -71,72 +67,71 @@ export default function ProtectedPage() {
   if (userError) return <div className="text-center p-4 text-red-500">Error: {userError.message}</div>
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4 text-center">Resumen de Películas y Series</h1>
+    <div className="max-w-2xl mx-auto p-4 bg-gray-50 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Resumen de Películas y Series</h1>
       {user ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Bienvenido, {user.name}!</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
-              <div>
-                <Input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ingresa el título de una película o serie"
-                  required
-                />
-              </div>
-              <div className="flex space-x-2">
-                <Input
-                  type="text"
-                  value={chapter}
-                  onChange={(e) => setChapter(e.target.value)}
-                  placeholder="Número de capítulo/película (opcional)"
-                />
-                <Button
-                  type="button"
-                  onClick={(e) => handleSubmit(e, true)}
-                  disabled={isSearching || !chapter}
-                  variant="secondary"
-                >
-                  Resumen Específico
-                </Button>
-              </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isSearching}
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <p className="mb-4 text-lg font-semibold text-gray-700">Bienvenido, {user.name}!</p>
+          <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
+            <div>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ingresa el título de una película o serie"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={chapter}
+                onChange={(e) => setChapter(e.target.value)}
+                placeholder="Número de capítulo/película (opcional)"
+                className="flex-grow p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                type="button"
+                onClick={(e) => handleSubmit(e, true)}
+                className="px-4 py-3 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 disabled:opacity-50 transition duration-150 ease-in-out"
+                disabled={isSearching || !chapter}
               >
-                {isSearching ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Buscando...
-                  </>
-                ) : 'Obtener Resumen General'}
-              </Button>
-            </form>
-            {error && (
-              <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded" role="alert">
-                <p>{error}</p>
-              </div>
-            )}
-            {summary && (
-              <div className="mt-4 p-4 bg-gray-100 rounded">
-                <h2 className="font-bold mb-2">Resumen:</h2>
-                <p>{summary}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                Resumen Específico
+              </button>
+            </div>
+            <button
+              type="submit"
+              className="w-full px-4 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 transition duration-150 ease-in-out"
+              disabled={isSearching}
+            >
+              {isSearching ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Buscando...
+                </span>
+              ) : 'Obtener Resumen General'}
+            </button>
+          </form>
+          {error && (
+            <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md" role="alert">
+              <p>{error}</p>
+            </div>
+          )}
+          {summary && (
+            <div className="mt-6 p-4 bg-gray-100 rounded-md">
+              <h2 className="font-bold text-lg mb-2 text-gray-800">Resumen:</h2>
+              <p className="text-gray-700">{summary}</p>
+            </div>
+          )}
+        </div>
       ) : (
-        <Card>
-          <CardContent>
-            <p className="text-center">Por favor, inicia sesión para usar esta función.</p>
-          </CardContent>
-        </Card>
+        <div className="bg-white shadow-md rounded-lg p-6 text-center">
+          <p className="text-lg text-gray-700">Por favor, inicia sesión para usar esta función.</p>
+        </div>
       )}
     </div>
   )
