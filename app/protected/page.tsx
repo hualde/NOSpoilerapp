@@ -25,8 +25,8 @@ export default function ProtectedPage() {
     setSummary('')
 
     const content = isSpecific && chapter
-      ? `Proporciona un resumen conciso del capítulo/película ${chapter} de "${title}". El resumen debe ser de aproximadamente 3-4 oraciones.`
-      : `Proporciona un resumen general conciso de la película o serie "${title}". El resumen debe ser de aproximadamente 3-4 oraciones.`
+      ? `Proporciona un resumen conciso del capítulo/película ${chapter} de "${title}". Sin spoilers de capitulos siguientes`
+      : `Proporciona un resumen general conciso de la película o serie "${title}" hasta el capitulo ${chapter}. Sin spoilers de capitulos siguientes`
 
     const options = {
       method: 'POST',
