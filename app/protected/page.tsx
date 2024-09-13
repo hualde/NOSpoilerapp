@@ -26,7 +26,7 @@ export default function ProtectedPage() {
 
     const content = isSpecific && chapter
   ? `Proporciona un resumen objetivo y conciso de lo que sucede en el capítulo/película ${chapter} de "${title}". Limítate a describir solo los eventos principales de la trama, sin añadir información adicional.`
-  : `Proporciona un resumen objetivo y conciso de los eventos principales en la serie "${title}" desde el inicio hasta el capítulo ${chapter}. Enfócate en los puntos clave de la trama sin entrar en detalles menores ni añadir información externa a la historia.`
+  : `Proporciona un resumen objetivo y conciso de los eventos principales en la serie/pelicula "${title}" desde el inicio hasta el capítulo ${chapter}. Enfócate en la historia.`
     
     const options = {
       method: 'POST',
@@ -37,7 +37,7 @@ export default function ProtectedPage() {
       body: JSON.stringify({
         model: "llama-3.1-sonar-small-128k-online",
         messages: [
-          { role: "system", content: "Proporciona resúmenes objetivos de películas y series. Describe solo los eventos de la trama, sin autores ni actores ni nada más. Sin spoilers" },
+          { role: "system", content: "eres un experto en cine" },
           { role: "user", content: content }
         ],
         max_tokens: 400,
