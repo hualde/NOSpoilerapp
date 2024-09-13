@@ -2,6 +2,10 @@
 
 import { useState } from 'react'
 import { useUser } from '@auth0/nextjs-auth0/client'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Loader2 } from "lucide-react"
 
 export default function ProtectedPage() {
   const { user, isLoading: isUserLoading, error: userError } = useUser()
@@ -17,8 +21,8 @@ export default function ProtectedPage() {
     setSummary('')
 
     const content = isSpecific && chapter
-      ? `Proporciona un resumen conciso del capítulo/película ${chapter} de "${title}".`
-      : `Proporciona un resumen general conciso de la película o serie "${title}".`
+      ? `Proporciona un resumen conciso del capítulo/película ${chapter} de "${title}". El resumen debe ser de aproximadamente 3-4 oraciones.`
+      : `Proporciona un resumen general conciso de la película o serie "${title}". El resumen debe ser de aproximadamente 3-4 oraciones.`
 
     const options = {
       method: 'POST',
@@ -32,22 +36,27 @@ export default function ProtectedPage() {
           { role: "system", content: "Eres un asistente que proporciona resúmenes concisos de películas y series." },
           { role: "user", content: content }
         ],
-        max_tokens: 500,
-        temperature: 0.7,
-        top_p: 0.9
+        max_tokens: 150,
+        temperature: 0.2,
+        top_p: 0.9,
+        stream: false
       })
     };
 
     try {
       const response = await fetch('https://api.perplexity.ai/chat/completions', options)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
       const data = await response.json()
-      if (response.ok) {
+      if (data.choices && data.choices[0] && data.choices[0].message) {
         setSummary(data.choices[0].message.content)
       } else {
-        setError('Error al obtener el resumen. Por favor, intenta de nuevo.')
+        throw new Error('Respuesta inesperada de la API')
       }
     } catch (err) {
-      setError('Error de red. Por favor, verifica tu conexión e intenta de nuevo.')
+      setError('Error al obtener el resumen. Por favor, intenta de nuevo.')
+      console.error('Error:', err)
     } finally {
       setIsSearching(false)
     }
@@ -63,60 +72,71 @@ export default function ProtectedPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Resumen de Películas y Series</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">Resumen de Películas y Series</h1>
       {user ? (
-        <>
-          <p className="mb-4">Bienvenido, {user.name}!</p>
-          <form onSubmit={(e) => handleSubmit(e, false)} className="mb-4">
-            <div className="mb-2">
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ingresa el título de una película o serie"
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-            <div className="mb-2 flex">
-              <input
-                type="text"
-                value={chapter}
-                onChange={(e) => setChapter(e.target.value)}
-                placeholder="Número de capítulo/película (opcional)"
-                className="flex-grow p-2 border border-gray-300 rounded-l"
-              />
-              <button
-                type="button"
-                onClick={(e) => handleSubmit(e, true)}
-                className="bg-green-500 text-white p-2 rounded-r hover:bg-green-600 disabled:bg-green-300"
-                disabled={isSearching || !chapter}
+        <Card>
+          <CardHeader>
+            <CardTitle>Bienvenido, {user.name}!</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
+              <div>
+                <Input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Ingresa el título de una película o serie"
+                  required
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Input
+                  type="text"
+                  value={chapter}
+                  onChange={(e) => setChapter(e.target.value)}
+                  placeholder="Número de capítulo/película (opcional)"
+                />
+                <Button
+                  type="button"
+                  onClick={(e) => handleSubmit(e, true)}
+                  disabled={isSearching || !chapter}
+                  variant="secondary"
+                >
+                  Resumen Específico
+                </Button>
+              </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSearching}
               >
-                Resumen Específico
-              </button>
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
-              disabled={isSearching}
-            >
-              {isSearching ? 'Buscando...' : 'Obtener Resumen General'}
-            </button>
-          </form>
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-              <span className="block sm:inline">{error}</span>
-            </div>
-          )}
-          {summary && (
-            <div className="bg-gray-100 p-4 rounded">
-              <h2 className="font-bold mb-2">Resumen:</h2>
-              <p>{summary}</p>
-            </div>
-          )}
-        </>
+                {isSearching ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Buscando...
+                  </>
+                ) : 'Obtener Resumen General'}
+              </Button>
+            </form>
+            {error && (
+              <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded" role="alert">
+                <p>{error}</p>
+              </div>
+            )}
+            {summary && (
+              <div className="mt-4 p-4 bg-gray-100 rounded">
+                <h2 className="font-bold mb-2">Resumen:</h2>
+                <p>{summary}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       ) : (
-        <p>Por favor, inicia sesión para usar esta función.</p>
+        <Card>
+          <CardContent>
+            <p className="text-center">Por favor, inicia sesión para usar esta función.</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   )
