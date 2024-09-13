@@ -25,9 +25,9 @@ export default function ProtectedPage() {
     setSummary('')
 
     const content = isSpecific && chapter
-    ? `Qué pasa en el capítulo/película ${chapter} de "${title}"`
-    : `Proporciona un resumen conciso de los eventos principales en la serie "${title}" desde el inicio hasta el capítulo ${chapter}. Enfócate en los puntos clave de la trama sin entrar en detalles menores.`
-
+  ? `Proporciona un resumen objetivo y conciso de lo que sucede en el capítulo/película ${chapter} de "${title}". Limítate a describir solo los eventos principales de la trama, sin añadir información adicional.`
+  : `Proporciona un resumen objetivo y conciso de los eventos principales en la serie "${title}" desde el inicio hasta el capítulo ${chapter}. Enfócate en los puntos clave de la trama sin entrar en detalles menores ni añadir información externa a la historia.`
+    
     const options = {
       method: 'POST',
       headers: {
