@@ -122,9 +122,9 @@ export default function ProtectedPage() {
             </div>
           )}
           {summary && (
-            <div className="mt-6 p-4 bg-gray-100 rounded-md">
+            <div className="mt-6 p-4 bg-gray-100 rounded-md overflow-auto max-h-96">
               <h2 className="font-bold text-lg mb-2 text-gray-800">Resumen:</h2>
-              <p className="text-gray-700">{summary}</p>
+              <p className="text-gray-700 whitespace-pre-wrap">{summary}</p>
             </div>
           )}
         </div>
