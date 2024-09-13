@@ -40,7 +40,7 @@ export default function ProtectedPage() {
           { role: "system", content: "Proporciona resúmenes objetivos de películas y series. Describe solo los eventos de la trama, sin autores ni actores ni nada más. Sin spoilers" },
           { role: "user", content: content }
         ],
-        max_tokens: 150,
+        max_tokens: 400,
         temperature: 0.2,
         top_p: 0.9,
         stream: false
