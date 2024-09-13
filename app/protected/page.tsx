@@ -25,8 +25,8 @@ export default function ProtectedPage() {
     setSummary('')
 
     const content = isSpecific && chapter
-      ? `Qué ha pasado en el capítulo/película ${chapter} de "${title}"`
-      : `Qué ha pasado en la película o serie "${title}" hasta el capitulo ${chapter}`
+    ? `Qué pasa en el capítulo/película ${chapter} de "${title}"`
+    : `Proporciona un resumen conciso de los eventos principales en la serie "${title}" desde el inicio hasta el capítulo ${chapter}. Enfócate en los puntos clave de la trama sin entrar en detalles menores.`
 
     const options = {
       method: 'POST',
@@ -37,7 +37,7 @@ export default function ProtectedPage() {
       body: JSON.stringify({
         model: "llama-3.1-sonar-small-128k-online",
         messages: [
-          { role: "system", content: "Proporciona resúmenes objetivos de películas y series. Describe solo los eventos de la trama, sin información adicional. Sin spoilers" },
+          { role: "system", content: "Proporciona resúmenes objetivos de películas y series. Describe solo los eventos de la trama, sin autores ni actores ni nada más. Sin spoilers" },
           { role: "user", content: content }
         ],
         max_tokens: 150,
