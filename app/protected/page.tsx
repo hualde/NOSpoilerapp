@@ -26,7 +26,7 @@ export default function ProtectedPage() {
 
     const content = summaryType === 'specific' && chapter
       ? `Proporciona un resumen de lo que sucede en el capítulo/película ${chapter} de "${title}". Limítate a describir solo los eventos principales de la trama, sin añadir información adicional.`
-      : `Proporciona un resumen de los eventos principales en la serie/película "${title}" hasta el capítulo "${chapter}". Enfócate en la historia principal.`
+      : `Proporciona un resumen de los eventos principales en la serie/película "${title}" desde la primera pelicula o capitulo hasta el capítulo "${chapter}"(incluido). Enfócate en la historia principal.`
     
     const options = {
       method: 'POST',
@@ -40,7 +40,7 @@ export default function ProtectedPage() {
           { role: "system", content: "Eres un experto en cine que proporciona resúmenes de peliculas y series." },
           { role: "user", content: content }
         ],
-        max_tokens: 2000,
+        max_tokens: 2500,
         temperature: 0.2,
         top_p: 0.9,
         stream: false
