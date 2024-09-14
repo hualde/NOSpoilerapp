@@ -26,7 +26,7 @@ export default function ProtectedPage() {
 
     const content = summaryType === 'specific' && chapter
       ? `Proporciona un resumen objetivo y conciso de lo que sucede en el capítulo/película ${chapter} de "${title}". Limítate a describir solo los eventos principales de la trama, sin añadir información adicional.`
-      : `Proporciona un resumen objetivo y conciso de los eventos principales en la serie/película "${title}"${chapter ? ` hasta el capítulo ${chapter}` : ''}. Enfócate en la historia principal.`
+      : `Proporciona un resumen objetivo y conciso de los eventos principales en la serie/película "${title}"hasta el capítulo "${chapter}". Enfócate en la historia principal.`
     
     const options = {
       method: 'POST',
