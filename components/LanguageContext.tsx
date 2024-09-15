@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useState, useContext, ReactNode } from 'react'
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react'
 
 type Language = 'es' | 'en' | 'fr'
 
@@ -19,8 +19,23 @@ export const useLanguage = () => {
   return context
 }
 
+const detectBrowserLanguage = (): Language => {
+  if (typeof window !== 'undefined') {
+    const browserLang = navigator.language.split('-')[0]
+    if (['es', 'en', 'fr'].includes(browserLang)) {
+      return browserLang as Language
+    }
+  }
+  return 'en' // Default to English if not detected or not supported
+}
+
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('es')
+  const [language, setLanguage] = useState<Language>('en')
+
+  useEffect(() => {
+    const detectedLang = detectBrowserLanguage()
+    setLanguage(detectedLang)
+  }, [])
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage }}>
