@@ -1,7 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useUser } from '@auth0/nextjs-auth0/client'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Loader2, Copy, Check } from "lucide-react"
 
 function simpleMarkdownToHtml(markdown: string): string {
   return markdown
@@ -16,12 +20,14 @@ function simpleMarkdownToHtml(markdown: string): string {
 
 export default function ProtectedPage() {
   const { user, isLoading: isUserLoading, error: userError } = useUser()
-  const [title, setTitle] = useState('')
-  const [chapter, setChapter] = useState('')
+  const [title, setTitle] = useState('Perdidos')
+  const [chapter, setChapter] = useState('Temporada 2 capítulo 3')
   const [summary, setSummary] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [error, setError] = useState('')
   const [summaryType, setSummaryType] = useState<'specific' | 'general'>('general')
+  const [isCopied, setIsCopied] = useState(false)
+  const summaryRef = useRef<HTMLDivElement>(null)
 
   const fetchSummary = async () => {
     setIsSearching(true)
@@ -75,6 +81,16 @@ export default function ProtectedPage() {
     fetchSummary()
   }
 
+  const handleCopy = () => {
+    if (summaryRef.current) {
+      const text = summaryRef.current.innerText
+      navigator.clipboard.writeText(text).then(() => {
+        setIsCopied(true)
+        setTimeout(() => setIsCopied(false), 2000)
+      })
+    }
+  }
+
   if (isUserLoading) return <div className="text-center p-4">Cargando...</div>
   if (userError) return <div className="text-center p-4 text-red-500">Error: {userError.message}</div>
 
@@ -82,71 +98,95 @@ export default function ProtectedPage() {
     <div className="max-w-4xl mx-auto p-4 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Resumen de Películas y Series</h1>
       {user ? (
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <p className="mb-4 text-lg font-semibold text-gray-700">Bienvenido, {user.name}!</p>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ingresa el título de una película o serie"
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-              <input
-                type="text"
-                value={chapter}
-                onChange={(e) => setChapter(e.target.value)}
-                placeholder="Número de capítulo/película (opcional)"
-                className="w-full sm:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <select
-                value={summaryType}
-                onChange={(e) => setSummaryType(e.target.value as 'specific' | 'general')}
-                className="w-full sm:w-1/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        <Card>
+          <CardHeader>
+            <CardTitle>Bienvenido, {user.name}!</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Ingresa el título de una película o serie"
+                  className="w-full"
+                  required
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <Input
+                  type="text"
+                  value={chapter}
+                  onChange={(e) => setChapter(e.target.value)}
+                  placeholder="Número de capítulo/película (opcional)"
+                  className="w-full sm:w-2/3"
+                />
+                <select
+                  value={summaryType}
+                  onChange={(e) => setSummaryType(e.target.value as 'specific' | 'general')}
+                  className="w-full sm:w-1/3 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="general">Resumen General</option>
+                  <option value="specific">Resumen Específico</option>
+                </select>
+              </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSearching}
               >
-                <option value="general">Resumen General</option>
-                <option value="specific">Resumen Específico</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              className="w-full px-4 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 transition duration-150 ease-in-out"
-              disabled={isSearching}
-            >
-              {isSearching ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Buscando...
-                </span>
-              ) : 'Obtener Resumen'}
-            </button>
-          </form>
-          {error && (
-            <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md" role="alert">
-              <p>{error}</p>
-            </div>
-          )}
-          {summary && (
-            <div className="mt-6 p-4 bg-gray-100 rounded-md overflow-auto max-h-[70vh]">
-              <h2 className="font-bold text-2xl mb-4 text-gray-800 sticky top-0 bg-gray-100 py-2">Resumen:</h2>
-              <div 
-                className="text-gray-700 space-y-2"
-                dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(summary) }}
-              />
-            </div>
-          )}
-        </div>
+                {isSearching ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Buscando...
+                  </>
+                ) : 'Obtener Resumen'}
+              </Button>
+            </form>
+            {error && (
+              <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md" role="alert">
+                <p>{error}</p>
+              </div>
+            )}
+            {summary && (
+              <div className="mt-6 bg-white rounded-md overflow-hidden shadow-md">
+                <div className="flex justify-between items-center bg-gray-100 px-4 py-2">
+                  <h2 className="font-bold text-xl text-gray-800">Resumen:</h2>
+                  <Button
+                    onClick={handleCopy}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center"
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="mr-2 h-4 w-4" />
+                        Copiado
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copiar
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <div 
+                  ref={summaryRef}
+                  className="p-4 max-h-[60vh] overflow-auto text-gray-700 space-y-2"
+                  dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(summary) }}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-6 text-center">
-          <p className="text-lg text-gray-700">Por favor, inicia sesión para usar esta función.</p>
-        </div>
+        <Card>
+          <CardContent>
+            <p className="text-center text-lg text-gray-700">Por favor, inicia sesión para usar esta función.</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   )
