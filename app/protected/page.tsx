@@ -2,12 +2,13 @@
 
 import { useState, useRef, ChangeEvent } from 'react'
 import { useUser } from '@auth0/nextjs-auth0/client'
+import { useLanguage } from '../../components/LanguageContext'
 
 function simpleMarkdownToHtml(markdown: string): string {
   return markdown
-    .replace(/^### (.*$)/gim, '<strong class="block mt-4 mb-2">$1</strong>')
-    .replace(/^## (.*$)/gim, '<strong class="block mt-6 mb-3">$1</strong>')
-    .replace(/^# (.*$)/gim, '<strong class="block mt-8 mb-4">$1</strong>')
+    .replace(/^### (.*$)/gim, '### $1')
+    .replace(/^## (.*$)/gim, '## $1')
+    .replace(/^# (.*$)/gim, '# $1')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/\n/g, '<br>')
@@ -16,6 +17,7 @@ function simpleMarkdownToHtml(markdown: string): string {
 
 export default function ProtectedPage() {
   const { user, isLoading: isUserLoading, error: userError } = useUser()
+  const { language } = useLanguage()
   const [title, setTitle] = useState('Lost')
   const [chapter, setChapter] = useState('Temporada 2 capítulo 3')
   const [summary, setSummary] = useState('')
@@ -55,7 +57,7 @@ export default function ProtectedPage() {
       body: JSON.stringify({
         model: "llama-3.1-sonar-large-128k-online",
         messages: [
-          { role: "system", content: "Eres un experto en cine que proporciona resúmenes estructurados de películas y series." },
+          { role: "system", content: `Eres un experto en cine que proporciona resúmenes estructurados de películas y series. Responde en ${language === 'es' ? 'español' : language === 'en' ? 'inglés' : 'francés'}.` },
           { role: "user", content: content }
         ],
         max_tokens: 3000,
@@ -99,22 +101,80 @@ export default function ProtectedPage() {
     }
   }
 
-  if (isUserLoading) return <div className="text-center p-4">Cargando...</div>
+  const getContent = () => {
+    switch (language) {
+      case 'es':
+        return {
+          title: 'Resumen de Películas y Series',
+          welcome: 'Bienvenido',
+          titlePlaceholder: 'Ingresa el título de una película o serie',
+          chapterPlaceholder: 'Capítulo/película',
+          summaryTypeOptions: {
+            general: 'Resume todo hasta este capitulo',
+            specific: 'Resumen sólo este capítulo'
+          },
+          getButton: 'Obtener Resumen',
+          searching: 'Buscando...',
+          copy: 'Copiar',
+          copied: 'Copiado',
+          loginPrompt: 'Por favor, inicia sesión para usar esta función.',
+          loading: 'Cargando...'
+        }
+      case 'en':
+        return {
+          title: 'Movie and Series Summary',
+          welcome: 'Welcome',
+          titlePlaceholder: 'Enter the title of a movie or series',
+          chapterPlaceholder: 'Chapter/movie',
+          summaryTypeOptions: {
+            general: 'Summarize everything up to this chapter',
+            specific: 'Summarize only this chapter'
+          },
+          getButton: 'Get Summary',
+          searching: 'Searching...',
+          copy: 'Copy',
+          copied: 'Copied',
+          loginPrompt: 'Please log in to use this feature.',
+          loading: 'Loading...'
+        }
+      case 'fr':
+        return {
+          title: 'Résumé de Films et Séries',
+          welcome: 'Bienvenue',
+          titlePlaceholder: 'Entrez le titre d\'un film ou d\'une série',
+          chapterPlaceholder: 'Chapitre/film',
+          summaryTypeOptions: {
+            general: 'Résumer tout jusqu\'à ce chapitre',
+            specific: 'Résumer uniquement ce chapitre'
+          },
+          getButton: 'Obtenir le résumé',
+          searching: 'Recherche en cours...',
+          copy: 'Copier',
+          copied: 'Copié',
+          loginPrompt: 'Veuillez vous connecter pour utiliser cette fonctionnalité.',
+          loading: 'Chargement...'
+        }
+    }
+  }
+
+  const content = getContent()
+
+  if (isUserLoading) return <div className="text-center p-4">{content.loading}</div>
   if (userError) return <div className="text-center p-4 text-red-500">Error: {userError.message}</div>
 
   return (
     <div className="max-w-4xl mx-auto p-4 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Resumen de Películas y Series</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">{content.title}</h1>
       {user ? (
         <div className="bg-white shadow-md rounded-lg p-6">
-          <p className="mb-4 text-lg font-semibold text-gray-700">Bienvenido, {user.name}!</p>
+          <p className="mb-4 text-lg font-semibold text-gray-700">{content.welcome}, {user.name}!</p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <input
                 type="text"
                 value={title}
                 onChange={handleTitleChange}
-                placeholder="Ingresa el título de una película o serie"
+                placeholder={content.titlePlaceholder}
                 className={`w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${titleEdited ? 'text-black' : 'text-gray-500'}`}
                 required
               />
@@ -124,7 +184,7 @@ export default function ProtectedPage() {
                 type="text"
                 value={chapter}
                 onChange={handleChapterChange}
-                placeholder="Capítulo/película"
+                placeholder={content.chapterPlaceholder}
                 className={`w-full sm:w-1/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${chapterEdited ? 'text-black' : 'text-gray-500'}`}
               />
               <select
@@ -132,8 +192,8 @@ export default function ProtectedPage() {
                 onChange={(e) => setSummaryType(e.target.value as 'specific' | 'general')}
                 className="w-full sm:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="general">Resume todo hasta este capitulo</option>
-                <option value="specific">Resumen sólo este capítulo</option>
+                <option value="general">{content.summaryTypeOptions.general}</option>
+                <option value="specific">{content.summaryTypeOptions.specific}</option>
               </select>
             </div>
             <button
@@ -147,9 +207,9 @@ export default function ProtectedPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Buscando...
+                  {content.searching}
                 </span>
-              ) : 'Obtener Resumen'}
+              ) : content.getButton}
             </button>
           </form>
           {error && (
@@ -160,12 +220,12 @@ export default function ProtectedPage() {
           {summary && (
             <div className="mt-6 bg-white rounded-md overflow-hidden shadow-md">
               <div className="flex justify-between items-center bg-gray-100 px-4 py-2">
-                <h2 className="font-bold text-xl text-gray-800">Resumen:</h2>
+                <h2 className="font-bold text-xl text-gray-800">{content.title}:</h2>
                 <button
                   onClick={handleCopy}
                   className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
                 >
-                  {isCopied ? 'Copiado' : 'Copiar'}
+                  {isCopied ? content.copied : content.copy}
                 </button>
               </div>
               <div 
@@ -178,7 +238,7 @@ export default function ProtectedPage() {
         </div>
       ) : (
         <div className="bg-white shadow-md rounded-lg p-6 text-center">
-          <p className="text-lg text-gray-700">Por favor, inicia sesión para usar esta función.</p>
+          <p className="text-lg text-gray-700">{content.loginPrompt}</p>
         </div>
       )}
     </div>
