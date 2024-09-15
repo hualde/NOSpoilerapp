@@ -16,7 +16,7 @@ function simpleMarkdownToHtml(markdown: string): string {
 
 export default function ProtectedPage() {
   const { user, isLoading: isUserLoading, error: userError } = useUser()
-  const [title, setTitle] = useState('Perdidos')
+  const [title, setTitle] = useState('Lost')
   const [chapter, setChapter] = useState('Temporada 2 capítulo 3')
   const [summary, setSummary] = useState('')
   const [isSearching, setIsSearching] = useState(false)
@@ -31,7 +31,7 @@ export default function ProtectedPage() {
     setSummary('')
 
     const content = summaryType === 'specific' && chapter
-      ? `Proporciona un resumen de lo que sucede en el capítulo/película ${chapter} de "${title}". Limítate a describir solo los eventos principales de la trama, sin añadir información adicional. Usa encabezados Markdown (# para títulos principales, ## para subtítulos) para estructurar el resumen.`
+      ? `Proporciona un resumen de lo que sucede en ${chapter} de "${title}". Limítate a describir solo los eventos principales de la trama, sin añadir información adicional. Usa encabezados Markdown (# para títulos principales, ## para subtítulos) para estructurar el resumen.`
       : `Proporciona un resumen solo de los eventos principales en la serie/película "${title}" desde la primera película o capítulo de la primera temporada o película hasta el capítulo "${chapter}"(incluido). Omite detalles externos a la narrativa. Usa encabezados Markdown (# para títulos principales, ## para subtítulos) para estructurar el resumen.`
     
     const options = {
@@ -120,8 +120,8 @@ export default function ProtectedPage() {
                 onChange={(e) => setSummaryType(e.target.value as 'specific' | 'general')}
                 className="w-full sm:w-1/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="general">Resumen General</option>
-                <option value="specific">Resumen Específico</option>
+                <option value="general">Resume todo hasta este capitulo</option>
+                <option value="specific">Resumen sólo este capítulo</option>
               </select>
             </div>
             <button
