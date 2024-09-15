@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, ChangeEvent } from 'react'
 import { useUser } from '@auth0/nextjs-auth0/client'
 
 function simpleMarkdownToHtml(markdown: string): string {
   return markdown
-    .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold mt-4 mb-2">$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold mt-6 mb-3">$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mt-8 mb-4">$1</h1>')
+    .replace(/^### (.*$)/gim, '<strong class="block mt-4 mb-2">$1</strong>')
+    .replace(/^## (.*$)/gim, '<strong class="block mt-6 mb-3">$1</strong>')
+    .replace(/^# (.*$)/gim, '<strong class="block mt-8 mb-4">$1</strong>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/\n/g, '<br>')
@@ -23,7 +23,19 @@ export default function ProtectedPage() {
   const [error, setError] = useState('')
   const [summaryType, setSummaryType] = useState<'specific' | 'general'>('general')
   const [isCopied, setIsCopied] = useState(false)
+  const [titleEdited, setTitleEdited] = useState(false)
+  const [chapterEdited, setChapterEdited] = useState(false)
   const summaryRef = useRef<HTMLDivElement>(null)
+
+  const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value)
+    setTitleEdited(true)
+  }
+
+  const handleChapterChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setChapter(e.target.value)
+    setChapterEdited(true)
+  }
 
   const fetchSummary = async () => {
     setIsSearching(true)
@@ -101,9 +113,9 @@ export default function ProtectedPage() {
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={handleTitleChange}
                 placeholder="Ingresa el título de una película o serie"
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${titleEdited ? 'text-black' : 'text-gray-500'}`}
                 required
               />
             </div>
@@ -111,14 +123,14 @@ export default function ProtectedPage() {
               <input
                 type="text"
                 value={chapter}
-                onChange={(e) => setChapter(e.target.value)}
-                placeholder="Número de capítulo/película (opcional)"
-                className="w-full sm:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={handleChapterChange}
+                placeholder="Capítulo/película"
+                className={`w-full sm:w-1/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${chapterEdited ? 'text-black' : 'text-gray-500'}`}
               />
               <select
                 value={summaryType}
                 onChange={(e) => setSummaryType(e.target.value as 'specific' | 'general')}
-                className="w-full sm:w-1/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full sm:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="general">Resume todo hasta este capitulo</option>
                 <option value="specific">Resumen sólo este capítulo</option>
