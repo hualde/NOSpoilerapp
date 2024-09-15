@@ -5,9 +5,13 @@ import { useUser } from '@auth0/nextjs-auth0/client'
 
 function simpleMarkdownToHtml(markdown: string): string {
   return markdown
+    .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold mt-4 mb-2">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold mt-6 mb-3">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mt-8 mb-4">$1</h1>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/\n/g, '<br>')
+    .replace(/^- (.*$)/gim, '<li class="ml-4">$1</li>')
 }
 
 export default function ProtectedPage() {
@@ -25,8 +29,8 @@ export default function ProtectedPage() {
     setSummary('')
 
     const content = summaryType === 'specific' && chapter
-      ? `Proporciona un resumen de lo que sucede en el capítulo/película ${chapter} de "${title}". Limítate a describir solo los eventos principales de la trama, sin añadir información adicional.`
-      : `Proporciona un resumen solo de los eventos principales en la serie/película "${title}" desde la primera pelicula o capitulo de la primera temporada o pelicula hasta el capítulo "${chapter}"(incluido). Omite detalles externos a la narrativa.`
+      ? `Proporciona un resumen de lo que sucede en el capítulo/película ${chapter} de "${title}". Limítate a describir solo los eventos principales de la trama, sin añadir información adicional. Usa encabezados Markdown (# para títulos principales, ## para subtítulos) para estructurar el resumen.`
+      : `Proporciona un resumen solo de los eventos principales en la serie/película "${title}" desde la primera película o capítulo de la primera temporada o película hasta el capítulo "${chapter}"(incluido). Omite detalles externos a la narrativa. Usa encabezados Markdown (# para títulos principales, ## para subtítulos) para estructurar el resumen.`
     
     const options = {
       method: 'POST',
@@ -37,7 +41,7 @@ export default function ProtectedPage() {
       body: JSON.stringify({
         model: "llama-3.1-sonar-large-128k-online",
         messages: [
-          { role: "system", content: "Eres un experto en cine que proporciona resúmenes de peliculas y series." },
+          { role: "system", content: "Eres un experto en cine que proporciona resúmenes estructurados de películas y series." },
           { role: "user", content: content }
         ],
         max_tokens: 3000,
@@ -75,7 +79,7 @@ export default function ProtectedPage() {
   if (userError) return <div className="text-center p-4 text-red-500">Error: {userError.message}</div>
 
   return (
-    <div className="max-w-2xl mx-auto p-4 bg-gray-50 min-h-screen">
+    <div className="max-w-4xl mx-auto p-4 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Resumen de Películas y Series</h1>
       {user ? (
         <div className="bg-white shadow-md rounded-lg p-6">
@@ -130,10 +134,10 @@ export default function ProtectedPage() {
             </div>
           )}
           {summary && (
-            <div className="mt-6 p-4 bg-gray-100 rounded-md overflow-auto max-h-96">
-              <h2 className="font-bold text-lg mb-2 text-gray-800">Resumen:</h2>
+            <div className="mt-6 p-4 bg-gray-100 rounded-md overflow-auto max-h-[70vh]">
+              <h2 className="font-bold text-2xl mb-4 text-gray-800 sticky top-0 bg-gray-100 py-2">Resumen:</h2>
               <div 
-                className="text-gray-700"
+                className="text-gray-700 space-y-2"
                 dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(summary) }}
               />
             </div>
